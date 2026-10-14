@@ -22,13 +22,17 @@
 // street address misses it. Search by name, biased toward Chicago; the name /
 // phone safety check below is what guarantees we only ever accept GH1.
 const BUSINESS_QUERY = 'GH1 Construction';
+// Place ID derived from GH1's Google Maps listing (feature ID
+// 0xa9431b8c7468f579:0x8882b56991112da6). Not a secret. Tried first; if Google
+// doesn't serve it, we fall back to the name search below.
+const KNOWN_PLACE_ID = 'ChIJefVodIwbQ6kRpi0RkWm1gog';
 const SEARCH_BIAS = { circle: { center: { latitude: 41.8781, longitude: -87.6298 }, radius: 50000 } };
 const SUCCESS_CACHE_SECONDS = 6 * 60 * 60; // 6 hours — real review data changes rarely
 const EMPTY_CACHE_SECONDS = 15 * 60; // 15 minutes — so a real match isn't hidden for long once Google's index catches up
 // Bump this whenever the resolution/validation logic changes, so a bad
 // cached response (e.g. the wrong business) can't outlive a fix — it
 // changes the cache key, so old entries are simply never matched again.
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 
 export async function onRequestGet(context) {
   const { env, request } = context;
@@ -45,19 +49,38 @@ export async function onRequestGet(context) {
   }
 
   try {
-    const { id: placeId, reason } = await resolvePlaceId(env.GOOGLE_PLACES_API_KEY);
-    if (!placeId) {
-      return emptyResponse(context, cacheKey, reason);
+    let details = null;
+    let failure = null;
+
+    // 1) Known Place ID, 2) name search. Either way the GH1 check below decides.
+    const candidates = [];
+    if (KNOWN_PLACE_ID) candidates.push(['known Place ID', async () => KNOWN_PLACE_ID]);
+    candidates.push(['name search', async () => {
+      const r = await resolvePlaceId(env.GOOGLE_PLACES_API_KEY);
+      if (!r.id) throw new Error(r.reason);
+      return r.id;
+    }]);
+
+    for (const [label, getId] of candidates) {
+      try {
+        const candidate = await fetchPlaceDetails(await getId(), env.GOOGLE_PLACES_API_KEY);
+        // Safety check, independent of the search's own check — never serve
+        // another business's real reviews under GH1's name.
+        const name = (candidate.displayName && candidate.displayName.text || '').toLowerCase();
+        const phone = candidate.nationalPhoneNumber || '';
+        if (name.indexOf('gh1') === -1 && phone.indexOf('405-5213') === -1) {
+          failure = (failure ? failure + ' ' : '') + label + ': resolved place did not match GH1 Construction.';
+          continue;
+        }
+        details = candidate;
+        break;
+      } catch (err) {
+        failure = (failure ? failure + ' ' : '') + label + ': ' + err.message;
+      }
     }
 
-    const details = await fetchPlaceDetails(placeId, env.GOOGLE_PLACES_API_KEY);
-
-    // Second safety check, independent of resolvePlaceId's own check — never
-    // serve another business's real reviews under GH1's name.
-    const detailsName = (details.displayName && details.displayName.text || '').toLowerCase();
-    const detailsPhone = details.nationalPhoneNumber || '';
-    if (detailsName.indexOf('gh1') === -1 && detailsPhone.indexOf('405-5213') === -1) {
-      return emptyResponse(context, cacheKey, 'Resolved place did not match GH1 Construction.');
+    if (!details) {
+      return emptyResponse(context, cacheKey, failure || 'Could not locate the business listing.');
     }
 
     const payload = {
