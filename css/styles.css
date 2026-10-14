@@ -608,8 +608,8 @@ img { max-width: 100%; display: block; }
 }
 
 .testimonial { text-align: center; }
-.testimonial__stars { color: var(--color-accent); display: flex; justify-content: center; gap: 4px; margin-bottom: 22px; }
-.testimonial__stars svg { width: 20px; height: 20px; }
+.testimonial__stars { color: #F5B301; display: flex; justify-content: center; gap: 4px; margin-bottom: 22px; }
+.testimonial__stars svg { width: 20px; height: 20px; fill: currentColor; stroke: currentColor; }
 .testimonial__quote {
   font-family: var(--font-body);
   font-weight: 500;
