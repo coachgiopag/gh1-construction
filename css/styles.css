@@ -979,7 +979,11 @@ img { max-width: 100%; display: block; }
   padding: 28px 30px;
   color: var(--color-text-strong);
 }
-.rating-card__brand { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.rating-card__brand {
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 16px; margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
 .rating-card__brand span {
   font-family: var(--font-heading);
   font-weight: 600;
@@ -988,11 +992,12 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase;
   color: var(--color-text-muted);
 }
-.rating-card__score-row { display: flex; align-items: baseline; gap: 12px; }
-.rating-card__score { font-family: var(--font-display); font-size: 60px; line-height: 1; color: var(--color-primary); }
-.rating-card__count { font-family: var(--font-caption); font-size: 13px; color: var(--color-text-muted); margin-top: 4px; }
+.rating-card__score-row { display: flex; align-items: center; gap: 18px; }
+.rating-card__score { font-family: var(--font-display); font-size: 64px; line-height: 1; color: var(--color-primary); }
+.rating-card__score-row svg { width: 20px; height: 20px; }
+.rating-card__count { font-family: var(--font-caption); font-size: 14px; color: var(--color-text-muted); margin-top: 6px; }
 .rating-card__link {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1002,11 +1007,14 @@ img { max-width: 100%; display: block; }
   font-size: 13px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-accent-press);
-  border: 2px solid var(--color-border);
+  color: var(--color-primary);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 11px 16px;
+  padding: 12px 16px;
+  transition: background 0.15s, border-color 0.15s;
 }
+.rating-card__link:hover { background: #fff; border-color: var(--color-accent); }
 
 .reviews-empty {
   max-width: 560px;
