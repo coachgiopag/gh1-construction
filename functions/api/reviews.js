@@ -18,13 +18,17 @@
 // own branded error page, which would hide our actual JSON — easier to just
 // let the front-end check `reviews.length` instead of the status code.
 
-const BUSINESS_QUERY = 'GH1 Construction, 5828 W Waveland Ave, Chicago, IL 60634';
+// GH1 is a service-area listing with a hidden street address, so searching by
+// street address misses it. Search by name, biased toward Chicago; the name /
+// phone safety check below is what guarantees we only ever accept GH1.
+const BUSINESS_QUERY = 'GH1 Construction';
+const SEARCH_BIAS = { circle: { center: { latitude: 41.8781, longitude: -87.6298 }, radius: 50000 } };
 const SUCCESS_CACHE_SECONDS = 6 * 60 * 60; // 6 hours — real review data changes rarely
 const EMPTY_CACHE_SECONDS = 15 * 60; // 15 minutes — so a real match isn't hidden for long once Google's index catches up
 // Bump this whenever the resolution/validation logic changes, so a bad
 // cached response (e.g. the wrong business) can't outlive a fix — it
 // changes the cache key, so old entries are simply never matched again.
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 
 export async function onRequestGet(context) {
   const { env, request } = context;
@@ -41,9 +45,9 @@ export async function onRequestGet(context) {
   }
 
   try {
-    const placeId = await resolvePlaceId(env.GOOGLE_PLACES_API_KEY);
+    const { id: placeId, reason } = await resolvePlaceId(env.GOOGLE_PLACES_API_KEY);
     if (!placeId) {
-      return emptyResponse(context, cacheKey, 'Could not locate the business listing yet.');
+      return emptyResponse(context, cacheKey, reason);
     }
 
     const details = await fetchPlaceDetails(placeId, env.GOOGLE_PLACES_API_KEY);
@@ -92,11 +96,13 @@ async function resolvePlaceId(apiKey) {
       'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask': 'places.id,places.displayName,places.nationalPhoneNumber',
     },
-    body: JSON.stringify({ textQuery: BUSINESS_QUERY }),
+    body: JSON.stringify({ textQuery: BUSINESS_QUERY, locationBias: SEARCH_BIAS }),
   });
-  if (!res.ok) return null;
+  if (!res.ok) return { id: null, reason: 'Google Places search returned HTTP ' + res.status + '.' };
   const data = await res.json();
-  if (!data.places || !data.places.length) return null;
+  if (!data.places || !data.places.length) {
+    return { id: null, reason: 'Google Places search returned no results.' };
+  }
 
   // Safety check: Text Search can return unrelated nearby businesses for a
   // brand-new, address-hidden listing like this one. Never trust places[0]
@@ -108,7 +114,10 @@ async function resolvePlaceId(apiKey) {
     const phone = p.nationalPhoneNumber || '';
     return name.indexOf('gh1') !== -1 || phone.indexOf('405-5213') !== -1;
   });
-  return match ? match.id : null;
+  if (!match) {
+    return { id: null, reason: 'Google returned ' + data.places.length + ' result(s) but none matched GH1 Construction.' };
+  }
+  return { id: match.id, reason: null };
 }
 
 async function fetchPlaceDetails(placeId, apiKey) {
@@ -118,7 +127,7 @@ async function fetchPlaceDetails(placeId, apiKey) {
       'X-Goog-FieldMask': 'displayName,nationalPhoneNumber,rating,userRatingCount,reviews',
     },
   });
-  if (!res.ok) throw new Error('Place Details request failed');
+  if (!res.ok) throw new Error('Place Details request failed (HTTP ' + res.status + ')');
   return res.json();
 }
 
