@@ -6,27 +6,27 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://gh1construction.com/about.html</loc>
+    <loc>https://gh1construction.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://gh1construction.com/services.html</loc>
+    <loc>https://gh1construction.com/services</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://gh1construction.com/gallery.html</loc>
+    <loc>https://gh1construction.com/gallery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://gh1construction.com/contact.html</loc>
+    <loc>https://gh1construction.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://gh1construction.com/reviews.html</loc>
+    <loc>https://gh1construction.com/reviews</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

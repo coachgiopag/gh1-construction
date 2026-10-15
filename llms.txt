@@ -25,7 +25,7 @@ Lake County, IL; Cook County, IL; and the northwest suburbs of Chicago.
 
 ## Pages
 - [Home](https://gh1construction.com/): Overview of GH1 Construction and its services.
-- [About](https://gh1construction.com/about.html): Background on owner George Horaites and the company's referral-based history.
-- [Services](https://gh1construction.com/services.html): Full list of remodeling services and trades, plus frequently asked questions.
-- [Gallery](https://gh1construction.com/gallery.html): Photos of completed projects, filterable by room type and before/after.
-- [Contact](https://gh1construction.com/contact.html): Free estimate request form and contact details.
+- [About](https://gh1construction.com/about): Background on owner George Horaites and the company's referral-based history.
+- [Services](https://gh1construction.com/services): Full list of remodeling services and trades, plus frequently asked questions.
+- [Gallery](https://gh1construction.com/gallery): Photos of completed projects, filterable by room type and before/after.
+- [Contact](https://gh1construction.com/contact): Free estimate request form and contact details.

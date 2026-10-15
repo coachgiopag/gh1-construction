@@ -5,6 +5,13 @@ import sys
 
 
 class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        # Mirror Cloudflare Pages: /about serves about.html
+        translated = super().translate_path(path)
+        if not os.path.exists(translated) and os.path.exists(translated + ".html"):
+            return translated + ".html"
+        return translated
+
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
         self.send_header("Pragma", "no-cache")
